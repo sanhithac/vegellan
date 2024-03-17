@@ -7,6 +7,6 @@ st.write("""
 
 option = st.selectbox(
     'Where are you located?',
-    (",'New York', 'California', 'Texas'))
+    ('New York', 'California', 'Texas'))
 
 st.write('You selected:', option)

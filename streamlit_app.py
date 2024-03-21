@@ -17,3 +17,12 @@ df = pd.DataFrame(
     columns=['lat', 'lon'])
 
 st.map(df)
+
+#the following will all be "on-click" after user clicks on a datapoint
+st.write("General User Sentiment:")
+
+st.write("Similar Restaurants:")
+#Graph
+
+st.write("Customer Rating Distribution:")
+#Histogram

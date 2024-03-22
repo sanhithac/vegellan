@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 # import networkx as nx
 # from pyvis.network import Network
+import matplotlib.pyplot as plt
  
 st.write("""
 # Welcome to Vegellan!

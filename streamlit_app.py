@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-# import matplotlib.pyplot as plt
-# import networkx as nx
-# from pyvis.network import Network
+import matplotlib.pyplot as plt
+import networkx as nx
+from pyvis.network import Network
  
 st.write("""
 # Welcome to Vegellan!
@@ -16,7 +16,7 @@ option = st.selectbox(
 st.write('You selected:', option)
 
 df = pd.DataFrame(
-    np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
+    np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],
     columns=['lat', 'lon'])
 
 st.map(df)
@@ -26,8 +26,8 @@ st.write("General User Sentiment:")
 
 st.write("Similar Restaurants:")
 #Graph
-#graph = nx.from_pandas_edgelist(edge_list, 'restaurant', 'similar_restaurant', True)
-# # Initiate PyVis network object
+# graph = nx.from_pandas_edgelist(edge_list, 'restaurant', 'similar_restaurant', True)
+# Initiate PyVis network object
 # net = Network(
 #                    height='400px',
 #                    width='100%',
@@ -49,8 +49,8 @@ st.write("Similar Restaurants:")
 
 st.write("Customer Rating Distribution:")
 #Histogram
-# arr = np.random.normal(1, 1, size=100)
-# fig, ax = plt.subplots()
-# ax.hist(arr, bins=20)
+arr = np.random.normal(1, 1, size=100)
+fig, ax = plt.subplots()
+ax.hist(arr, bins=20)
 
-# st.pyplot(fig)
+st.pyplot(fig)

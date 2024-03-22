@@ -48,8 +48,13 @@ st.write("Similar Restaurants:")
 
 st.write("Customer Rating Distribution:")
 #Histogram
-d = {'1': [10], '2': [3], '3': [4], '4': [50], '5': [10]}
-histogram = pd.DataFrame(data=d)
-# histogram = pd.DataFrame([1,2,3], columns=["a", "b", "c"])
+# d = {'1': [10], '2': [3], '3': [4], '4': [50], '5': [10]}
+# histogram = pd.DataFrame(data=d)
+# # histogram = pd.DataFrame([1,2,3], columns=["a", "b", "c"])
 
-st.bar_chart(histogram)
+# st.bar_chart(histogram)
+arr = np.random.normal(1, 1, size=100)
+fig, ax = plt.subplots()
+ax.hist(arr, bins=20)
+
+st.pyplot(fig)

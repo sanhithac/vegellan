@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 # import networkx as nx
-from pyvis.network import Network
+# from pyvis.network import Network
  
 st.write("""
 # Welcome to Vegellan!

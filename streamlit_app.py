@@ -4,16 +4,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from pyvis.network import Network
+from st_keyup import st_keyup
  
 st.write("""
 # Welcome to Vegellan!
 """)
 
-option = st.selectbox(
-    'Where are you located?',
-    ('New York', 'California', 'Texas'))
+# option = st.selectbox(
+#     'Where are you located?',
+#     ('New York', 'California', 'Texas'))
 
-st.write('You selected:', option)
+# st.write('You selected:', option)
+
+restaurant_value = st_keyup("Please enter the name of the restaurant you would like to search for:")
+
+#Temp values until we get the actual data
+options = ['Restaurant 1', 'Restaurant 2', 'Restaurant 3', 'Restaurant 4', 'Restaurant 5']
+
+filtered_options = [option for option in options if restaurant_value.lower() in option.lower()] if len(restaurant_value) >= 3 else []
+
+if filtered_options:
+    selected_option = st.selectbox("Select an option:", filtered_options)
+    st.write(f"You selected: {selected_option}")
+else:
+    if len(restaurant_value) > 0:
+        st.write("Please type more characters to see options...")
 
 df = pd.DataFrame(
     np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],

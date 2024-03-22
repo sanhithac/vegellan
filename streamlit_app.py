@@ -48,7 +48,7 @@ st.write("Similar Restaurants:")
 
 st.write("Customer Rating Distribution:")
 #Histogram
-d = {'col1': [1, 2], 'col2': [3, 4]}
+d = {'1': [10], '2': [3], '3': [4], '4': [50], '5': [10]}
 histogram = pd.DataFrame(data=d)
 # histogram = pd.DataFrame([1,2,3], columns=["a", "b", "c"])
 

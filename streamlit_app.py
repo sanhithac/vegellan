@@ -48,6 +48,6 @@ st.write("Similar Restaurants:")
 
 st.write("Customer Rating Distribution:")
 #Histogram
-histogram = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
+histogram = pd.DataFrame([1,2,3], columns=["a", "b", "c"])
 
 st.bar_chart(histogram)

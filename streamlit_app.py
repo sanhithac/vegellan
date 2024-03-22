@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import networkx as nx
+# import networkx as nx
 from pyvis.network import Network
  
 st.write("""
@@ -48,4 +48,6 @@ st.write("Similar Restaurants:")
 
 st.write("Customer Rating Distribution:")
 #Histogram
+histogram = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
 
+st.bar_chart(histogram)

@@ -15,6 +15,8 @@ def fuzzy_search(user_input, choices, message, threshold=70):
     Search for the best match for the user input in the list of choices using fuzzy matching.
     If the match score is below the threshold, return the message.
     """
+    # WW ratio is a weighted ratio of the two strings, might need to switch to QRatio
+    # if performance is a concern
     fuzzy_match = process.extractOne(user_input, choices, scorer=fuzz.WRatio)
     if fuzzy_match and fuzzy_match[1] > threshold:
         return fuzzy_match[0]

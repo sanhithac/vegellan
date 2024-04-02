@@ -4,16 +4,35 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from pyvis.network import Network
- 
+from rapidfuzz import process, fuzz
+
+# Replace this list with the names of the restaurants in the dataset
+restaurant_list = ["Chipotle Mexican Grill", "McDonald's", "Starbucks", "Subway", "Taco Bell", "Wendy's"]
+not_found_message = "No restaurant of that name found, please try entering the name again."
+
+def fuzzy_search(user_input, choices, message, threshold=70):
+    """
+    Search for the best match for the user input in the list of choices using fuzzy matching.
+    If the match score is below the threshold, return the message.
+    """
+    fuzzy_match = process.extractOne(user_input, choices, scorer=fuzz.WRatio)
+    if fuzzy_match and fuzzy_match[1] > threshold:
+        return fuzzy_match[0]
+    else:
+        return message
+
 st.write("""
 # Welcome to Vegellan!
 """)
 
-option = st.selectbox(
-    'Please enter the name of the restaurant you would like to look for:',
-    ('Restaurant 1', 'Restaurant 2', 'Restaurant 3', 'Restaurant 4', 'Restaurant 5'))
+user_input = st.text_input("Enter the name of the restaurant you would like to look for:")
 
-st.write('You selected:', option)
+if user_input:
+    restaurant = fuzzy_search(user_input, restaurant_list, not_found_message)
+    if restaurant == not_found_message:
+        st.write(restaurant)
+    else:
+        st.write("Restaurant selected:", restaurant)
 
 df = pd.DataFrame(
     np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],

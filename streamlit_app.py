@@ -2,9 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from streamlit_folium import st_folium
 import networkx as nx
 from pyvis.network import Network
 from rapidfuzz import process, fuzz
+import folium
+
+pd.set_option('display.precision', 2)
 
 # Replace this list with the names of the restaurants in the dataset
 restaurants = pd.read_parquet('restaurants.parquet')
@@ -38,11 +42,28 @@ if user_input:
     else:
         st.write("Restaurant selected:", restaurant)
 
-df = pd.DataFrame(
-    np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],
-    columns=['lat', 'lon'])
+#folium
+coordinates = restaurants[['meta_name', 'meta_latitude', 'meta_longitude']]
+coordinates = coordinates.rename(columns={'meta_latitude': 'lat', 'meta_longitude': 'lon'})
+avg_location = coordinates[['lat', 'lon']].mean()
+folium_map = folium.Map(location=avg_location, zoom_start=7)
+for meta_name in coordinates.itertuples():
+    marker = folium.Marker(location=(meta_name.lat, meta_name.lon),
+                           tooltip=meta_name.meta_name)
+    marker.add_to(folium_map)
 
-st.map(df)
+st_folium(folium_map, width=725)
+
+#streamlit map
+# coordinates = restaurants[['meta_latitude', 'meta_longitude']]
+#coordinates = coordinates.rename(columns={'meta_latitude': 'lat', 'meta_longitude': 'lon'})
+
+#original
+# df = pd.DataFrame(
+#     np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],
+#     columns=['lat', 'lon'])
+
+# st.map(coordinates)
 
 #the following will all be "on-click" after user clicks on a datapoint
 st.write("General User Sentiment:")

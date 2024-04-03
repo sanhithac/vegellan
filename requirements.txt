@@ -3,3 +3,4 @@ networkx==3.2.1
 pyvis==0.3.2
 seaborn==0.13.2
 rapidfuzz==3.7.0
+streamlit-folium==0.18.0

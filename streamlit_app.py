@@ -30,19 +30,21 @@ plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].co
 # Initial map settings
 initial_location = [41.71, -74.0060]
 initial_zoom = 6
-
+selected_restaurant_name = None
 
 if user_text_input:
     restaurant = fuzzy_search(user_text_input, restaurant_list, not_found_message)
     if restaurant != not_found_message:
-        st.write("Restaurant selected:", restaurant)
         selected_restaurant = plot_data[plot_data['meta_name'] == restaurant]
         if not selected_restaurant.empty:
+            selected_restaurant_name = selected_restaurant.iloc[0]['meta_name']
             selected_lat = selected_restaurant.iloc[0]['meta_latitude']
             selected_lon = selected_restaurant.iloc[0]['meta_longitude']
 
             initial_location = [selected_lat, selected_lon]
             initial_zoom = 15
+    else:
+        st.write(not_found_message)
 
 m = folium.Map(
     location=initial_location,
@@ -63,7 +65,14 @@ for idx, row in plot_data.iterrows():
 
 result = st_folium(m, width=800, height=600)
 
-result
+#result
+
+
+if result['last_object_clicked_popup'] is not None:
+    selected_restaurant_name = result['last_object_clicked_popup']
+
+if selected_restaurant_name is not None:
+    st.write("You selected the restaurant: ", selected_restaurant_name)
 
 # df = pd.DataFrame(
 #     np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],

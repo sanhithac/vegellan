@@ -32,11 +32,16 @@ user_input = st.text_input("Enter the name of the restaurant you would like to l
 
 plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].copy()
 
-# Initial view state that hovers over New York City
+# Initial view state that hovers over New York
+initial_zoom = 7
+initial_lat = 41.21
+initial_lon = -74.00
+initial_radius = 1000
+
 view_state = pdk.ViewState(
-    latitude=40.71,
-    longitude=-74.00,
-    zoom=11,
+    latitude=initial_lat,
+    longitude=initial_lon,
+    zoom=initial_zoom,
     bearing=0,
     pitch=0
 )
@@ -56,12 +61,13 @@ if user_input:
             view_state.latitude = selected_lat
             view_state.longitude = selected_lon
             view_state.zoom = 14
+            zoomed_radius = 50
 
 layer = pdk.Layer(
     'ScatterplotLayer',
     data=plot_data,
     get_position=['meta_longitude', 'meta_latitude'],
-    get_radius=100,
+    get_radius=initial_radius if view_state.zoom == initial_zoom else zoomed_radius,
     get_fill_color=[255, 50, 0],
     pickable=True
 )

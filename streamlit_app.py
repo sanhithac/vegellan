@@ -18,8 +18,6 @@ def fuzzy_search(user_input, choices, message, threshold=70):
     Search for the best match for the user input in the list of choices using fuzzy matching.
     If the match score is below the threshold, return the message.
     """
-    # WW ratio is a weighted ratio of the two strings, might need to switch to QRatio
-    # if performance is a concern
     fuzzy_match = process.extractOne(user_input, choices, scorer=fuzz.WRatio)
     if fuzzy_match and fuzzy_match[1] > threshold:
         return fuzzy_match[0]
@@ -32,30 +30,40 @@ st.write("""
 
 user_input = st.text_input("Enter the name of the restaurant you would like to look for:")
 
-if user_input:
-    restaurant = fuzzy_search(user_input, restaurant_list, not_found_message)
-    if restaurant == not_found_message:
-        st.write(restaurant)
-    else:
-        st.write("Restaurant selected:", restaurant)
-
 plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].copy()
 
-layer = pdk.Layer(
-    'ScatterplotLayer',
-    data=plot_data,
-    get_position=['meta_longitude', 'meta_latitude'],
-    get_radius=25,
-    get_fill_color=[255, 50, 0],
-    pickable=True
-)
-
+# Initial view state that hovers over New York City
 view_state = pdk.ViewState(
     latitude=40.71,
     longitude=-74.00,
     zoom=11,
     bearing=0,
     pitch=0
+)
+
+if user_input:
+    restaurant = fuzzy_search(user_input, restaurant_list, not_found_message)
+    if restaurant == not_found_message:
+        st.write(restaurant)
+    else:
+        st.write("Restaurant selected:", restaurant)
+        
+        selected_restaurant = plot_data[plot_data['meta_name'] == restaurant]
+        if not selected_restaurant.empty:
+            selected_lat = selected_restaurant.iloc[0]['meta_latitude']
+            selected_lon = selected_restaurant.iloc[0]['meta_longitude']
+            
+            view_state.latitude = selected_lat
+            view_state.longitude = selected_lon
+            view_state.zoom = 14
+
+layer = pdk.Layer(
+    'ScatterplotLayer',
+    data=plot_data,
+    get_position=['meta_longitude', 'meta_latitude'],
+    get_radius=100,
+    get_fill_color=[255, 50, 0],
+    pickable=True
 )
 
 r = pdk.Deck(

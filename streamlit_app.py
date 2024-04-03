@@ -7,7 +7,6 @@ from pyvis.network import Network
 from rapidfuzz import process, fuzz
 import folium
 from streamlit_folium import folium_static
-from folium.plugins import MarkerCluster
 
 # Load restaurant data
 restaurant_data = pd.read_parquet('restaurants.parquet')
@@ -44,12 +43,19 @@ if user_input:
             initial_location = [selected_lat, selected_lon]
             initial_zoom = 15
 
-m = folium.Map(location=initial_location, zoom_start=initial_zoom)
+m = folium.Map(
+    location=initial_location,
+    zoom_start=initial_zoom,
+    tiles='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attr='© OpenStreetMap contributors, © CARTO'
+    )
+
 
 for idx, row in plot_data.iterrows():
     folium.Marker(
         location=[row['meta_latitude'], row['meta_longitude']],
-        popup=row['meta_name'],  # This makes the marker clickable and shows the restaurant name
+        popup=row['meta_name'],
+        icon=folium.Icon(color='cadetBlue', icon='cutlery')
     ).add_to(m)
 
 

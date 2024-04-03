@@ -7,7 +7,9 @@ from pyvis.network import Network
 from rapidfuzz import process, fuzz
 
 # Replace this list with the names of the restaurants in the dataset
-restaurant_list = ["Chipotle Mexican Grill", "McDonald's", "Starbucks", "Subway", "Taco Bell", "Wendy's"]
+restaurants = pd.read_parquet('new_york_sentiment.parquet_part-00000-48dd439e-b9dd-4f8a-b3d8-57a1cdc6ce67-c000.snappy.parquet')
+restaurant_list = restaurants["meta_name"].drop_duplicates()
+# restaurant_list = ["Chipotle Mexican Grill", "McDonald's", "Starbucks", "Subway", "Taco Bell", "Wendy's"]
 not_found_message = "No restaurant of that name found, please try entering the name again."
 
 def fuzzy_search(user_input, choices, message, threshold=70):

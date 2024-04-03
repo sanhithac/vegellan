@@ -6,7 +6,7 @@ import networkx as nx
 from pyvis.network import Network
 from rapidfuzz import process, fuzz
 import folium
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium
 
 # Load restaurant data
 restaurant_data = pd.read_parquet('restaurants.parquet')
@@ -23,7 +23,7 @@ def fuzzy_search(user_input, choices, message, threshold=70):
 
 st.write("# Welcome to Vegellan!")
 
-user_input = st.text_input("Enter the name of the restaurant you would like to look for:")
+user_text_input = st.text_input("Enter the name of the restaurant you would like to look for:")
 
 plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].copy()
 
@@ -31,8 +31,9 @@ plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].co
 initial_location = [41.71, -74.0060]
 initial_zoom = 6
 
-if user_input:
-    restaurant = fuzzy_search(user_input, restaurant_list, not_found_message)
+
+if user_text_input:
+    restaurant = fuzzy_search(user_text_input, restaurant_list, not_found_message)
     if restaurant != not_found_message:
         st.write("Restaurant selected:", restaurant)
         selected_restaurant = plot_data[plot_data['meta_name'] == restaurant]
@@ -55,11 +56,14 @@ for idx, row in plot_data.iterrows():
     folium.Marker(
         location=[row['meta_latitude'], row['meta_longitude']],
         popup=row['meta_name'],
-        icon=folium.Icon(color='cadetBlue', icon='cutlery')
+        tooltip=row['meta_name'],
+        icon=folium.Icon(color='red', icon='cutlery')
     ).add_to(m)
 
 
-folium_static(m)
+result = st_folium(m, width=800, height=600)
+
+result
 
 # df = pd.DataFrame(
 #     np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],

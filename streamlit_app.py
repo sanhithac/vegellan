@@ -7,10 +7,10 @@ from pyvis.network import Network
 from rapidfuzz import process, fuzz
 import pydeck as pdk
 
-# Replace this list with the names of the restaurants in the dataset
-restaurants = pd.read_parquet('restaurants.parquet')
-restaurant_list = restaurants["meta_name"].drop_duplicates()
-# restaurant_list = ["Chipotle Mexican Grill", "McDonald's", "Starbucks", "Subway", "Taco Bell", "Wendy's"]
+# Replace this dataframe with a call to the actual database
+restaurant_data = pd.read_parquet('restaurants.parquet')
+restaurant_list = restaurant_data["meta_name"].drop_duplicates()
+
 not_found_message = "No restaurant of that name found, please try entering the name again."
 
 def fuzzy_search(user_input, choices, message, threshold=70):
@@ -33,18 +33,20 @@ st.write("""
 user_input = st.text_input("Enter the name of the restaurant you would like to look for:")
 
 if user_input:
-    restaurant = fuzzy_search(user_input, restaurant_data['name'].to_list(), not_found_message)
+    restaurant = fuzzy_search(user_input, restaurant_list, not_found_message)
     if restaurant == not_found_message:
         st.write(restaurant)
     else:
         st.write("Restaurant selected:", restaurant)
 
+plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].copy()
+
 layer = pdk.Layer(
     'ScatterplotLayer',
-    data=restaurant_data,
-    get_position='[lon, lat]',
-    get_radius=100,
-    get_fill_color=[255, 140, 0],
+    data=plot_data,
+    get_position=['meta_longitude', 'meta_latitude'],
+    get_radius=25,
+    get_fill_color=[255, 50, 0],
     pickable=True
 )
 
@@ -59,7 +61,7 @@ view_state = pdk.ViewState(
 r = pdk.Deck(
     layers=[layer],
     initial_view_state=view_state,
-    tooltip={"text": "{name}"}
+    tooltip={"text": "{meta_name}"}
 )
 
 st.pydeck_chart(r)

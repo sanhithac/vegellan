@@ -7,12 +7,10 @@ from pyvis.network import Network
 from rapidfuzz import process, fuzz
 import pydeck as pdk
 
-# Replace this dataframe with the real data from our database
-restaurant_data = pd.DataFrame({
-    'name': ["Chipotle Mexican Grill", "McDonald's", "Starbucks", "Subway", "Taco Bell", "Wendy's"],
-    'lat': [40.71, 40.72, 40.73, 40.74, 40.75, 40.76],
-    'lon': [-74.00, -74.01, -74.02, -74.03, -74.04, -74.05]
-})
+# Replace this list with the names of the restaurants in the dataset
+restaurants = pd.read_parquet('restaurants.parquet')
+restaurant_list = restaurants["meta_name"].drop_duplicates()
+# restaurant_list = ["Chipotle Mexican Grill", "McDonald's", "Starbucks", "Subway", "Taco Bell", "Wendy's"]
 not_found_message = "No restaurant of that name found, please try entering the name again."
 
 def fuzzy_search(user_input, choices, message, threshold=70):

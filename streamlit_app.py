@@ -10,12 +10,13 @@ from streamlit_folium import st_folium
 
 # Load restaurant data
 restaurant_data = pd.read_parquet('restaurants.parquet')
-restaurant_list = restaurant_data["meta_name"].drop_duplicates()
+restaurant_list = restaurant_data["meta_name"].str.lower().drop_duplicates()
 
 not_found_message = "No restaurant of that name found, please try entering the name again."
 
 def fuzzy_search(user_input, choices, message, threshold=70):
-    fuzzy_match = process.extractOne(user_input, choices, scorer=fuzz.WRatio)
+    user_input_lower = user_input.lower()
+    fuzzy_match = process.extractOne(user_input_lower, choices, scorer=fuzz.WRatio)
     if fuzzy_match and fuzzy_match[1] > threshold:
         return fuzzy_match[0]
     else:
@@ -35,7 +36,7 @@ selected_restaurant_name = None
 if user_text_input:
     restaurant = fuzzy_search(user_text_input, restaurant_list, not_found_message)
     if restaurant != not_found_message:
-        selected_restaurant = plot_data[plot_data['meta_name'] == restaurant]
+        selected_restaurant = plot_data[plot_data['meta_name'].str.lower() == restaurant]
         if not selected_restaurant.empty:
             selected_restaurant_name = selected_restaurant.iloc[0]['meta_name']
             selected_lat = selected_restaurant.iloc[0]['meta_latitude']

@@ -26,11 +26,11 @@ st.write("# Welcome to Vegellan!")
 
 user_text_input = st.text_input("Enter the name of the restaurant you would like to look for:")
 
-plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].copy()
+plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].drop_duplicates().copy()
 
 # Initial map settings
-initial_location = [41.71, -74.0060]
-initial_zoom = 6
+initial_location = plot_data[['meta_latitude', 'meta_longitude']].mean()
+initial_zoom = 7
 selected_restaurant_name = None
 
 if user_text_input:
@@ -50,8 +50,6 @@ if user_text_input:
 m = folium.Map(
     location=initial_location,
     zoom_start=initial_zoom,
-    tiles='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attr='© OpenStreetMap contributors, © CARTO'
     )
 
 
@@ -64,9 +62,7 @@ for idx, row in plot_data.iterrows():
     ).add_to(m)
 
 
-result = st_folium(m, width=800, height=600)
-
-#result
+result = st_folium(m, width=725)
 
 
 if result['last_object_clicked_popup'] is not None:
@@ -74,12 +70,6 @@ if result['last_object_clicked_popup'] is not None:
 
 if selected_restaurant_name is not None:
     st.write("You selected the restaurant: ", selected_restaurant_name)
-
-# df = pd.DataFrame(
-#     np.random.randn(1000, 2) / [50, 50] + [40.71, -74.0],
-#     columns=['lat', 'lon'])
-
-# st.map(df)
 
 #the following will all be "on-click" after user clicks on a datapoint
 st.write("General User Sentiment:")

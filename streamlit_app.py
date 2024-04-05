@@ -1,3 +1,4 @@
+import random
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,6 +8,10 @@ from pyvis.network import Network
 from rapidfuzz import process, fuzz
 import folium
 from streamlit_folium import st_folium
+from stvis import pv_static
+import streamlit.components.v1 as components
+# import visgraph, Node, Edge, Config, NodeConfig, EdgeConfig
+from streamlit_agraph import agraph, Node, Edge, Config
 
 # Load restaurant data
 restaurant_data = pd.read_parquet('restaurants.parquet')
@@ -26,7 +31,22 @@ st.write("# Welcome to Vegellan!")
 
 user_text_input = st.text_input("Enter the name of the restaurant you would like to look for:")
 
-plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].drop_duplicates().copy()
+plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude', 'sentiment_label', 'meta_address']].copy()
+
+#sentiment aggregation
+plot_data['sentiment_label'] = np.where(plot_data['sentiment_label'] == 'POSITIVE', 1, plot_data['sentiment_label'])
+plot_data['sentiment_label'] = np.where(plot_data['sentiment_label'] == 'NEGATIVE', 0, plot_data['sentiment_label'])
+# for idx, row in plot_data.iterrows():
+#     if row['sentiment_label']=='POSITIVE':
+#         row['sentiment_label']=1
+#     else:
+#         row['sentiment_label']=0
+
+grouped = plot_data.groupby(['meta_name', 'meta_address'])
+sentiment_data = grouped.mean().reset_index()
+# sentiment_data['meta_name'].str.lower()
+# for idx, row in sentiment_data.iterrows():
+#     print(row)
 
 # Initial map settings
 initial_location = plot_data[['meta_latitude', 'meta_longitude']].mean()
@@ -70,37 +90,80 @@ if result['last_object_clicked_popup'] is not None:
 
 if selected_restaurant_name is not None:
     st.write("You selected the restaurant: ", selected_restaurant_name)
+    sentiment_value = sentiment_data.loc[sentiment_data['meta_name'] == selected_restaurant_name, 'sentiment_label']
+    if (sentiment_value > .5).bool():
+        sentiment = 'Positive'
+    else:
+        sentiment = 'Negative'
+    st.write("General User Sentiment: ", sentiment )
+    address = sentiment_data.loc[sentiment_data['meta_name'] == selected_restaurant_name, 'meta_address']
+    st.write("Address: ", str(address)[:-33])
 
 #the following will all be "on-click" after user clicks on a datapoint
-st.write("General User Sentiment:")
+# st.write("General User Sentiment:")
 
-st.write("Similar Restaurants:")
-#Graph
-# graph = nx.from_pandas_edgelist(edge_list, 'restaurant', 'similar_restaurant', True)
-# Initiate PyVis network object
-# net = Network(
-#                    height='400px',
-#                    width='100%',
-#                    bgcolor='#222222',
-#                    font_color='white'
-#                   )
+#dummy data:
+source = []  # empty list
+target = []  # different empty list
+node_list = restaurant_list
 
-# # Take Networkx graph and translate it to a PyVis graph format
-# net.from_nx(G)
+for i in node_list:
+    for j in node_list:
+        if i < j:
+            source.append(i)
+            target.append(j)
 
-# # Generate network with specific layout settings
-# net.repulsion(
-#                     node_distance=420,
-#                     central_gravity=0.33,
-#                     spring_length=110,
-#                     spring_strength=0.10,
-#                     damping=0.95
-#                    )
+loop_data = pd.DataFrame({'source': source, 'target': target})
 
-st.write("Customer Rating Distribution:")
+#agraph
+if selected_restaurant_name is not None:
+    edge_data_similar = (loop_data.loc[(loop_data['source']==selected_restaurant_name.lower()) | (loop_data['target']==selected_restaurant_name.lower())])
+
+    nodes = []
+    edges = []
+
+    source = selected_restaurant_name.lower()
+    target = pd.concat([edge_data_similar['source'], edge_data_similar['target']])
+    nodes_all = target.drop_duplicates()
+
+    node_data = list(set(nodes_all))
+    nodes.append( Node(id=source,
+                       size=15,
+                       label=source,
+                       color="red",
+                       shape="dot",)
+                )
+    for i in range(0, len(node_data)):
+        if(node_data[i]!=source):
+            nodes.append( Node(id=node_data[i],
+                           size=5,
+                           label=node_data[i],
+                           title = (random.uniform(0, 1)),
+                           color="green",
+                           shape="dot",)
+                    ) # includes **kwargs
+            edges.append( Edge(source=source,
+                           color="black",
+                           target=node_data[i],
+                           # **kwargs
+                           )
+                    )
+
+    config = Config(width=750,
+                    height=950,
+                    directed=False,
+                    physics=True,
+                    hierarchical=True,
+                    # **kwargs
+                    )
+
+    return_value = agraph(nodes=nodes,
+                          edges=edges,
+                          config=config)
+
 #Histogram
-arr = np.random.normal(1, 1, size=100)
-fig, ax = plt.subplots()
-ax.hist(arr, bins=20)
-
-st.pyplot(fig)
+# arr = np.random.normal(1, 1, size=100)
+# fig, ax = plt.subplots()
+# ax.hist(arr, bins=20)
+#
+# st.pyplot(fig)

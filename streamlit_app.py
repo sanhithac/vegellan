@@ -31,7 +31,22 @@ st.write("# Welcome to Vegellan!")
 
 user_text_input = st.text_input("Enter the name of the restaurant you would like to look for:")
 
-plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude']].drop_duplicates().copy()
+plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude', 'sentiment_label', 'meta_address']].copy()
+
+#sentiment aggregation
+plot_data['sentiment_label'] = np.where(plot_data['sentiment_label'] == 'POSITIVE', 1, plot_data['sentiment_label'])
+plot_data['sentiment_label'] = np.where(plot_data['sentiment_label'] == 'NEGATIVE', 0, plot_data['sentiment_label'])
+# for idx, row in plot_data.iterrows():
+#     if row['sentiment_label']=='POSITIVE':
+#         row['sentiment_label']=1
+#     else:
+#         row['sentiment_label']=0
+
+grouped = plot_data.groupby(['meta_name', 'meta_address'])
+sentiment_data = grouped.mean().reset_index()
+# sentiment_data['meta_name'].str.lower()
+# for idx, row in sentiment_data.iterrows():
+#     print(row)
 
 # Initial map settings
 initial_location = plot_data[['meta_latitude', 'meta_longitude']].mean()
@@ -75,6 +90,14 @@ if result['last_object_clicked_popup'] is not None:
 
 if selected_restaurant_name is not None:
     st.write("You selected the restaurant: ", selected_restaurant_name)
+    sentiment_value = sentiment_data.loc[sentiment_data['meta_name'] == selected_restaurant_name, 'sentiment_label']
+    if (sentiment_value > .5).bool():
+        sentiment = 'Positive'
+    else:
+        sentiment = 'Negative'
+    st.write("General User Sentiment: ", sentiment )
+    address = sentiment_data.loc[sentiment_data['meta_name'] == selected_restaurant_name, 'meta_address']
+    st.write("Address: ", str(address)[:-33])
 
 #the following will all be "on-click" after user clicks on a datapoint
 # st.write("General User Sentiment:")
@@ -91,67 +114,6 @@ for i in node_list:
             target.append(j)
 
 loop_data = pd.DataFrame({'source': source, 'target': target})
-#print(loop_data)
-
-# edge_data = pd.read_parquet('new_york_restaurant_reviews_2021_onwards_similarities_model=all-MiniLM-L12-v2_3ab9b2aec9344267b384e302fe4f007d.parquet')
-# # edge_list = edge_data[['meta_name_a', 'meta_name_b', 'cosine_similarity']].drop_duplicates()
-#
-# st.write("Similar Restaurants:")
-# #Graph
-# if selected_restaurant_name is not None:
-#     edge_data_similar = (loop_data.loc[(loop_data['source']==selected_restaurant_name.lower()) | (loop_data['target']==selected_restaurant_name.lower())])
-#     print(edge_data_similar)
-#     # edge_list = edge_data_similar[['meta_name_a', 'meta_name_b', 'cosine_similarity']].drop_duplicates()
-#     edge_list = edge_data_similar.drop_duplicates()
-#     # pyvis graph
-#     graph = nx.from_pandas_edgelist(edge_list, 'source', 'target')
-#     # Initiate PyVis network object
-#     net = Network(
-#                        height='400px',
-#                        width='100%',
-#                        font_color='black'
-#                       )
-#
-#     # # Take Networkx graph and translate it to a PyVis graph format
-#     net.from_nx(graph)
-#
-#     # # Generate network with specific layout settings
-#     net.repulsion(
-#                         node_distance=420,
-#                         central_gravity=0.33,
-#                         spring_length=110,
-#                         spring_strength=0.10,
-#                         damping=0.95
-#                        )
-#     net.save_graph(f'pyvis_graph.html')
-#     HtmlFile = open(f'pyvis_graph.html', 'r', encoding='utf-8')
-#     # Save and read graph as HTML file (locally)
-#
-#     # Load HTML file in HTML component for display on Streamlit page
-#     components.html(HtmlFile.read(), height=435)
-
-#streamlit-visgraph
-# sources = edge_data['meta_name_a']
-# targets = edge_data['meta_name_b']
-# weights = edge_data['cosine_similarity']
-# nodes = []
-# edges = []
-# node_config = NodeConfig(shape='dot')
-# edge_config = EdgeConfig()
-# options = Config()
-# edge_data = zip(sources, targets, weights)
-# nodes_all = sources.tolist() + targets.tolist()
-# node_data = list(set(nodes_all))
-# for i in range(0, len(node_data)):
-#     nodes.append(Node(id=i, label=node_data[i], title=node_data[i], value=nodes_all.count(node_data[i]), url="http://example/"+node_data[i], node_config=node_config))
-# for e in edge_data:
-#     src = e[0]
-#     dst = e[1]
-#     w = e[2]
-#     edges.append(Edge(source=node_data.index(src), target=node_data.index(dst), edge_config=edge_config))
-# v = visgraph(nodes=nodes, edges=edges, config=options)
-#
-# st.write("Customer Rating Distribution:")
 
 #agraph
 if selected_restaurant_name is not None:
@@ -176,12 +138,12 @@ if selected_restaurant_name is not None:
             nodes.append( Node(id=node_data[i],
                            size=5,
                            label=node_data[i],
+                           title = (random.uniform(0, 1)),
                            color="green",
                            shape="dot",)
                     ) # includes **kwargs
             edges.append( Edge(source=source,
                            color="black",
-                           strokeWidth = (random.uniform(0, 1))*10,
                            target=node_data[i],
                            # **kwargs
                            )
@@ -198,23 +160,6 @@ if selected_restaurant_name is not None:
     return_value = agraph(nodes=nodes,
                           edges=edges,
                           config=config)
-
-#stvis
-# g= Network(height='500px', width='500px',heading='')
-#
-# sources = edge_data['meta_name_a']
-# targets = edge_data['meta_name_b']
-# nodes_all = sources.tolist() + targets.tolist()
-# node_data = list(set(nodes_all))
-# for i in range(0, len(node_data)):
-#     g.add_node(i, node_data[i], color='green')
-# for e in edge_data:
-#     src = e[0]
-#     dst = e[1]
-#     w = e[2]
-#     g.add_edge(src, dst)
-#
-# pv_static(g)
 
 #Histogram
 # arr = np.random.normal(1, 1, size=100)

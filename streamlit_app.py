@@ -2,15 +2,9 @@ import random
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import networkx as nx
-from pyvis.network import Network
 from rapidfuzz import process, fuzz
 import folium
 from streamlit_folium import st_folium
-from stvis import pv_static
-import streamlit.components.v1 as components
-# import visgraph, Node, Edge, Config, NodeConfig, EdgeConfig
 from streamlit_agraph import agraph, Node, Edge, Config
 
 # Load restaurant data

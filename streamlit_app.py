@@ -1,3 +1,4 @@
+import random
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,6 +8,10 @@ from pyvis.network import Network
 from rapidfuzz import process, fuzz
 import folium
 from streamlit_folium import st_folium
+from stvis import pv_static
+import streamlit.components.v1 as components
+# import visgraph, Node, Edge, Config, NodeConfig, EdgeConfig
+from streamlit_agraph import agraph, Node, Edge, Config
 
 # Load restaurant data
 restaurant_data = pd.read_parquet('restaurants.parquet')
@@ -72,35 +77,148 @@ if selected_restaurant_name is not None:
     st.write("You selected the restaurant: ", selected_restaurant_name)
 
 #the following will all be "on-click" after user clicks on a datapoint
-st.write("General User Sentiment:")
+# st.write("General User Sentiment:")
 
-st.write("Similar Restaurants:")
-#Graph
-# graph = nx.from_pandas_edgelist(edge_list, 'restaurant', 'similar_restaurant', True)
-# Initiate PyVis network object
-# net = Network(
-#                    height='400px',
-#                    width='100%',
-#                    bgcolor='#222222',
-#                    font_color='white'
-#                   )
+#dummy data:
+source = []  # empty list
+target = []  # different empty list
+node_list = restaurant_list
 
-# # Take Networkx graph and translate it to a PyVis graph format
-# net.from_nx(G)
+for i in node_list:
+    for j in node_list:
+        if i < j:
+            source.append(i)
+            target.append(j)
 
-# # Generate network with specific layout settings
-# net.repulsion(
-#                     node_distance=420,
-#                     central_gravity=0.33,
-#                     spring_length=110,
-#                     spring_strength=0.10,
-#                     damping=0.95
-#                    )
+loop_data = pd.DataFrame({'source': source, 'target': target})
+#print(loop_data)
 
-st.write("Customer Rating Distribution:")
+# edge_data = pd.read_parquet('new_york_restaurant_reviews_2021_onwards_similarities_model=all-MiniLM-L12-v2_3ab9b2aec9344267b384e302fe4f007d.parquet')
+# # edge_list = edge_data[['meta_name_a', 'meta_name_b', 'cosine_similarity']].drop_duplicates()
+#
+# st.write("Similar Restaurants:")
+# #Graph
+# if selected_restaurant_name is not None:
+#     edge_data_similar = (loop_data.loc[(loop_data['source']==selected_restaurant_name.lower()) | (loop_data['target']==selected_restaurant_name.lower())])
+#     print(edge_data_similar)
+#     # edge_list = edge_data_similar[['meta_name_a', 'meta_name_b', 'cosine_similarity']].drop_duplicates()
+#     edge_list = edge_data_similar.drop_duplicates()
+#     # pyvis graph
+#     graph = nx.from_pandas_edgelist(edge_list, 'source', 'target')
+#     # Initiate PyVis network object
+#     net = Network(
+#                        height='400px',
+#                        width='100%',
+#                        font_color='black'
+#                       )
+#
+#     # # Take Networkx graph and translate it to a PyVis graph format
+#     net.from_nx(graph)
+#
+#     # # Generate network with specific layout settings
+#     net.repulsion(
+#                         node_distance=420,
+#                         central_gravity=0.33,
+#                         spring_length=110,
+#                         spring_strength=0.10,
+#                         damping=0.95
+#                        )
+#     net.save_graph(f'pyvis_graph.html')
+#     HtmlFile = open(f'pyvis_graph.html', 'r', encoding='utf-8')
+#     # Save and read graph as HTML file (locally)
+#
+#     # Load HTML file in HTML component for display on Streamlit page
+#     components.html(HtmlFile.read(), height=435)
+
+#streamlit-visgraph
+# sources = edge_data['meta_name_a']
+# targets = edge_data['meta_name_b']
+# weights = edge_data['cosine_similarity']
+# nodes = []
+# edges = []
+# node_config = NodeConfig(shape='dot')
+# edge_config = EdgeConfig()
+# options = Config()
+# edge_data = zip(sources, targets, weights)
+# nodes_all = sources.tolist() + targets.tolist()
+# node_data = list(set(nodes_all))
+# for i in range(0, len(node_data)):
+#     nodes.append(Node(id=i, label=node_data[i], title=node_data[i], value=nodes_all.count(node_data[i]), url="http://example/"+node_data[i], node_config=node_config))
+# for e in edge_data:
+#     src = e[0]
+#     dst = e[1]
+#     w = e[2]
+#     edges.append(Edge(source=node_data.index(src), target=node_data.index(dst), edge_config=edge_config))
+# v = visgraph(nodes=nodes, edges=edges, config=options)
+#
+# st.write("Customer Rating Distribution:")
+
+#agraph
+if selected_restaurant_name is not None:
+    edge_data_similar = (loop_data.loc[(loop_data['source']==selected_restaurant_name.lower()) | (loop_data['target']==selected_restaurant_name.lower())])
+
+    nodes = []
+    edges = []
+
+    source = selected_restaurant_name.lower()
+    target = pd.concat([edge_data_similar['source'], edge_data_similar['target']])
+    nodes_all = target.drop_duplicates()
+
+    node_data = list(set(nodes_all))
+    nodes.append( Node(id=source,
+                       size=15,
+                       label=source,
+                       color="red",
+                       shape="dot",)
+                )
+    for i in range(0, len(node_data)):
+        if(node_data[i]!=source):
+            nodes.append( Node(id=node_data[i],
+                           size=5,
+                           label=node_data[i],
+                           color="green",
+                           shape="dot",)
+                    ) # includes **kwargs
+            edges.append( Edge(source=source,
+                           color="black",
+                           strokeWidth = (random.uniform(0, 1))*10,
+                           target=node_data[i],
+                           # **kwargs
+                           )
+                    )
+
+    config = Config(width=750,
+                    height=950,
+                    directed=False,
+                    physics=True,
+                    hierarchical=True,
+                    # **kwargs
+                    )
+
+    return_value = agraph(nodes=nodes,
+                          edges=edges,
+                          config=config)
+
+#stvis
+# g= Network(height='500px', width='500px',heading='')
+#
+# sources = edge_data['meta_name_a']
+# targets = edge_data['meta_name_b']
+# nodes_all = sources.tolist() + targets.tolist()
+# node_data = list(set(nodes_all))
+# for i in range(0, len(node_data)):
+#     g.add_node(i, node_data[i], color='green')
+# for e in edge_data:
+#     src = e[0]
+#     dst = e[1]
+#     w = e[2]
+#     g.add_edge(src, dst)
+#
+# pv_static(g)
+
 #Histogram
-arr = np.random.normal(1, 1, size=100)
-fig, ax = plt.subplots()
-ax.hist(arr, bins=20)
-
-st.pyplot(fig)
+# arr = np.random.normal(1, 1, size=100)
+# fig, ax = plt.subplots()
+# ax.hist(arr, bins=20)
+#
+# st.pyplot(fig)

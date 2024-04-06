@@ -2,6 +2,8 @@ import random
 import streamlit as st
 import pandas as pd
 import numpy as np
+from PIL import Image
+from matplotlib import pyplot as plt
 from rapidfuzz import process, fuzz
 import folium
 from streamlit_folium import st_folium
@@ -30,17 +32,14 @@ plot_data = restaurant_data[['meta_name', 'meta_latitude', 'meta_longitude', 'se
 #sentiment aggregation
 plot_data['sentiment_label'] = np.where(plot_data['sentiment_label'] == 'POSITIVE', 1, plot_data['sentiment_label'])
 plot_data['sentiment_label'] = np.where(plot_data['sentiment_label'] == 'NEGATIVE', 0, plot_data['sentiment_label'])
-# for idx, row in plot_data.iterrows():
-#     if row['sentiment_label']=='POSITIVE':
-#         row['sentiment_label']=1
-#     else:
-#         row['sentiment_label']=0
 
 grouped = plot_data.groupby(['meta_name', 'meta_address'])
 sentiment_data = grouped.mean().reset_index()
-# sentiment_data['meta_name'].str.lower()
-# for idx, row in sentiment_data.iterrows():
-#     print(row)
+
+#ratings aggregation
+ratings_data = restaurant_data[['meta_name', 'meta_address', 'rating']].copy()
+ratings_grouped = ratings_data.groupby(['meta_name', 'meta_address'])
+avg_ratings = ratings_grouped.mean().reset_index()
 
 # Initial map settings
 initial_location = plot_data[['meta_latitude', 'meta_longitude']].mean()
@@ -61,11 +60,11 @@ if user_text_input:
     else:
         st.write(not_found_message)
 
+#Map with markers
 m = folium.Map(
     location=initial_location,
     zoom_start=initial_zoom,
     )
-
 
 for idx, row in plot_data.iterrows():
     folium.Marker(
@@ -75,28 +74,56 @@ for idx, row in plot_data.iterrows():
         icon=folium.Icon(color='red', icon='cutlery')
     ).add_to(m)
 
-
 result = st_folium(m, width=725)
-
 
 if result['last_object_clicked_popup'] is not None:
     selected_restaurant_name = result['last_object_clicked_popup']
 
+#on search/click of map marker
 if selected_restaurant_name is not None:
     st.write("You selected the restaurant: ", selected_restaurant_name)
+
     sentiment_value = sentiment_data.loc[sentiment_data['meta_name'] == selected_restaurant_name, 'sentiment_label']
     if (sentiment_value > .5).bool():
         sentiment = 'Positive'
     else:
         sentiment = 'Negative'
-    st.write("General User Sentiment: ", sentiment )
+    st.write("General User Sentiment: ", sentiment)
+
     address = sentiment_data.loc[sentiment_data['meta_name'] == selected_restaurant_name, 'meta_address']
-    st.write("Address: ", str(address)[:-33])
+    st.write("Address: ", address.values[0])
 
-#the following will all be "on-click" after user clicks on a datapoint
-# st.write("General User Sentiment:")
+    rating = avg_ratings.loc[avg_ratings['meta_name'] == selected_restaurant_name, 'rating']
+    st.write("Average Rating: ", rating.values[0])
 
-#dummy data:
+    #Histogram of ratings
+    ratings_rest = ratings_data.loc[ratings_data['meta_name'] == selected_restaurant_name]
+    arr = ratings_rest['rating']
+    # commutes.plot.hist(grid=True, bins=20, rwidth=0.9,
+    #                    color='#607c8e')
+    plt.title('Rating Distribution')
+    plt.xlabel('Ratings')
+    plt.ylabel('Num Ratings')
+    # plt.grid(axis='y', alpha=0.75)
+    # plt.rcParams['figure.figsize'] = [2, 3]
+    fig, ax = plt.subplots(figsize=(4,3))
+    ax.hist(arr, bins=5, range=[1,5], histtype='bar', align='right')
+    fig.savefig("histogram.png")
+    image = Image.open('histogram.png')
+    st.image(image, width=300)
+    #without streamlit
+    # size, scale = 1000, 10
+    # ratings_rest = ratings_data.loc[ratings_data['meta_name'] == selected_restaurant_name]
+    # commutes = ratings_rest['rating']
+    #
+    # commutes.plot.hist(grid=True, bins=20, rwidth=0.9,
+    #                    color='#607c8e')
+    # plt.title('Rating Distribution')
+    # plt.xlabel('Ratings')
+    # plt.ylabel('Num Ratings')
+    # plt.grid(axis='y', alpha=0.75)
+
+#dummy data for graph:
 source = []  # empty list
 target = []  # different empty list
 node_list = restaurant_list
@@ -108,6 +135,8 @@ for i in node_list:
             target.append(j)
 
 loop_data = pd.DataFrame({'source': source, 'target': target})
+
+st.write("Similar Restaurants:")
 
 #agraph
 if selected_restaurant_name is not None:
@@ -155,9 +184,4 @@ if selected_restaurant_name is not None:
                           edges=edges,
                           config=config)
 
-#Histogram
-# arr = np.random.normal(1, 1, size=100)
-# fig, ax = plt.subplots()
-# ax.hist(arr, bins=20)
-#
-# st.pyplot(fig)
+

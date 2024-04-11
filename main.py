@@ -39,13 +39,14 @@ with state_selector:
     st.session_state['api_key_input'] = st.text_input(
         "API Key",
         type="password",
+        value= None if "API_KEY" not in st.secrets else st.secrets['API_KEY'],
     )
     
     st.session_state['state_select_submitted'] = st.form_submit_button("Submit")
 
 # Check if API Key input authenticates
-api_call_headers = {"X-API-Key": st.session_state['api_key_input']}
-authenticate_check = api_authenticate(headers=api_call_headers)
+st.session_state["api_call_headers"] = {"X-API-Key": st.session_state['api_key_input']}
+authenticate_check = api_authenticate(headers=st.session_state["api_call_headers"])
 
 if authenticate_check['status'] == 'error':
     st.sidebar.error(f"API Error: {authenticate_check['message']}", icon="⚠️")
@@ -54,6 +55,7 @@ else:
     st.sidebar.success(f"API Success: {authenticate_check['body']}", icon="👍")
     st.session_state['authenticated'] = True
 
+# Create a warning if state is not New York
 if st.session_state['state_selected'] != 'New_York':
     st.warning(
         "WARNING: You have selected a different state aside from New York. Some visuals will not be produced due to interest of time.",
@@ -61,8 +63,7 @@ if st.session_state['state_selected'] != 'New_York':
     )
 
 if st.session_state['authenticated']:
-    produce_main_interface(api_call_headers)
+    produce_main_interface()
 else:
     st.error("API Key Error: Ensure that provided API key is correct.", icon="⚠️")
 
-# Create a warning if state is not New York

@@ -54,13 +54,24 @@ def get_list_of_states(headers=None):
     }
 
 @st.cache_data
-def get_list_of_restaurants(state, sampling_factor, headers=None):
+def get_list_of_restaurants(
+    state,
+    sampling_factor,
+    vegan_only=True, 
+    non_vegan_only=False,
+    headers=None,
+):
 
     try:
         response = requests.get(
             f"{BASE_URL}/restaurants/{state}/{sampling_factor}",
             headers=headers,
+            params={
+                "vegan_only": vegan_only,
+                "non_vegan_only": non_vegan_only,
+            },
         )
+
     except requests.exceptions.RequestException as e:
         error_msg = e.response.text
         return {"status":"error", "message": error_msg}

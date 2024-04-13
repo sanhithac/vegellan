@@ -40,19 +40,48 @@ from data_api import (
 )
 
 def produce_main_interface():
+    
     # Proceed with listing of restaurants
     state_selected = st.session_state['state_selected']
     state_selected_beautified = " ".join(state_selected.split("_"))
 
-    restaurant_list_request = get_list_of_restaurants(state_selected, 1.0, headers=st.session_state["api_call_headers"])
+    # Generate List of Restaurants
+    restaurant_list_request = get_list_of_restaurants(
+        state_selected,
+        sampling_factor=1.0,
+        vegan_only=True,
+        non_vegan_only=False,
+        headers=st.session_state["api_call_headers"],
+    )
 
-    list_of_state_restaurants = pd.DataFrame(restaurant_list_request['body'])
+    if st.session_state['show_all_restaurants']:
 
-    st.subheader(f"{len(list_of_state_restaurants)} vegan-friendly restaurants in {state_selected_beautified} identified!", divider="green")
+        non_vegan_list_request = get_list_of_restaurants(
+            state_selected,
+            sampling_factor=1.0 if 'sampling_factor' not in st.session_state else st.session_state['sampling_factor'],
+            vegan_only=False,
+            non_vegan_only=True,
+            headers=st.session_state["api_call_headers"],
+        )
+
+        list_of_state_restaurants = pd.concat(
+            [
+                pd.DataFrame(restaurant_list_request["body"]),
+                pd.DataFrame(non_vegan_list_request["body"]),
+            ],
+            axis=0,
+        )
+
+    else:
+
+        list_of_state_restaurants = pd.DataFrame(restaurant_list_request['body'])
+
+    st.subheader(f"{len(restaurant_list_request['body'])} vegan-friendly restaurants in {state_selected_beautified} identified!", divider="green")
 
     # pass search function to searchbox
     # user_text_input = st.text_input(
     #     "Enter the name of the restaurant you would like to look for:",
+
     # )
 
     main_col1, main_col2 = st.columns([0.7,0.3])
@@ -76,7 +105,7 @@ def produce_main_interface():
         )
 
         if len(st.session_state['resto_info']) != 1:
-            st.session_state['resto_info'] = st.session_state['resto_info'].sample(1)
+            st.session_state['resto_info'] = st.session_state['resto_info'].sample(1).to_dict(orient="records")[0]
         else:
             st.session_state['resto_info'] = st.session_state['resto_info'].to_dict(orient="records")[0]
 

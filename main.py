@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="Vegellan App",
     page_icon="🥬",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
     # menu_items={
     #     'Get Help': 'https://www.extremelycoolapp.com/help',
     #     'Report a bug': "https://www.extremelycoolapp.com/bug",
@@ -42,6 +42,13 @@ with state_selector:
         value= None if "API_KEY" not in st.secrets else st.secrets['API_KEY'],
     )
     
+    st.subheader("Experimental")
+
+    st.session_state['show_all_restaurants'] = st.toggle("Show All Restaurants", value=False)
+
+    if st.session_state['show_all_restaurants']:
+        st.session_state['sampling_factor'] = st.slider("Sampling Factor", 0.0, 1.0, value=0.1)
+
     st.session_state['state_select_submitted'] = st.form_submit_button("Submit")
 
 # Check if API Key input authenticates

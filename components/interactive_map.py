@@ -21,23 +21,25 @@ def generate_interactive_map(
     list_of_state_restaurants (pd.DataFrame): Dataframe containing the list of restaurant information.
     '''
 
-    st.session_state['toggle_heatmap'] = main_st.toggle("Toggle Heatmap", value=True)
+    st.session_state['toggle_heatmap'] = main_st.toggle("Toggle Heatmap", value=False)
 
     # Initialize center and zoom level
     # st.session_state['map_center'] = list_of_state_restaurants[['latitude', 'longitude']].mean() if st.session_state.get('map_center') is None else st.session_state.get('map_center')
     # st.session_state['map_zoom_level'] = 7 if st.session_state.get('map_zoom_level') is None else st.session_state.get('map_zoom_level')
 
+    st.session_state['map_zoom_level'] = 11
+
     # Map with markers
     m = folium.Map(
-        location=list_of_state_restaurants[['latitude', 'longitude']].mean(),
-        zoom_start=7,
+        location=(40.72896768958952, -73.97498063743116),
+        zoom_start=st.session_state['map_zoom_level'],
     )
 
     fg = folium.FeatureGroup(name="Markers")
 
     if st.session_state['toggle_heatmap']:
         fg.add_child(
-            HeatMap(list_of_state_restaurants[['latitude', 'longitude']].values.tolist())
+            HeatMap(list_of_state_restaurants[['latitude', 'longitude']].values.tolist()),
         )
     else:
 
@@ -45,15 +47,16 @@ def generate_interactive_map(
             main_st.error("WARNING: Toggling off heatmap mode can only be done if you zoom enough.", icon="⚠️")
             st.session_state['toggle_heatmap'] = True
         else:
-
+            
+            add_padding = 0.03
             if st.session_state.get('map_lat_bounds') is not None:
                 filtered_restaurants = list_of_state_restaurants[
                     (
-                        (list_of_state_restaurants.latitude.astype(float) >= st.session_state['map_lat_bounds'][0])
-                        & (list_of_state_restaurants.latitude.astype(float) <= st.session_state['map_lat_bounds'][1])
+                        (list_of_state_restaurants.latitude.astype(float) >= st.session_state['map_lat_bounds'][0] - add_padding)
+                        & (list_of_state_restaurants.latitude.astype(float) <= st.session_state['map_lat_bounds'][1] + add_padding)
                     ) & (
-                        (list_of_state_restaurants.longitude.astype(float) >= st.session_state['map_long_bounds'][0])
-                        & (list_of_state_restaurants.longitude.astype(float) <= st.session_state['map_long_bounds'][1])
+                        (list_of_state_restaurants.longitude.astype(float) >= st.session_state['map_long_bounds'][0] - add_padding)
+                        & (list_of_state_restaurants.longitude.astype(float) <= st.session_state['map_long_bounds'][1] + add_padding)
                     )
                 ].copy()
 
@@ -62,14 +65,17 @@ def generate_interactive_map(
 
             for idx, row in filtered_restaurants.iterrows():
                 
-                pin_color = 'green'
+                if 'vegan' in row['category'].lower():
+                    pin_color = 'green'
+                else:
+                    pin_color = 'red'
         
                 fg.add_child(
                     folium.Marker(
                         location=[row['latitude'], row['longitude']],
                         popup=row['name'],
                         tooltip=row['name'],
-                        icon=folium.Icon(color=pin_color, icon='cutlery')
+                        icon=folium.Icon(color=pin_color, icon='cutlery'),
                     )
                 )
 

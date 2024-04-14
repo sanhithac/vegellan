@@ -25,7 +25,7 @@ def generate_node_graph(get_restaurant_edges_fxn):
 
     c_col2.dataframe(node_graph_legend, hide_index=True, width=500)
 
-    degrees = c_col1.slider("Degrees", min_value=2, max_value=4, value=3)
+    degrees = c_col1.slider("Degrees", min_value=2, max_value=4, value=2)
     
     similarity_model = c_col1.selectbox(
         "Similarity Model",

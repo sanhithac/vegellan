@@ -27,29 +27,31 @@ states = get_list_of_states()['body']
 
 state_selector = st.sidebar.form("my_form")
 
-with state_selector:
 
-    st.session_state['state_selected'] = st.selectbox(
-        "Select your state",
-        states,
-        format_func=lambda x: " ".join(x.split("_")),
-        index=states.index('New_York'),
-    ) 
+st.session_state['state_selected'] = 'New_York'
+st.session_state['api_key_input'] = None if "API_KEY" not in st.secrets else st.secrets['API_KEY']
 
-    st.session_state['api_key_input'] = st.text_input(
-        "API Key",
-        type="password",
-        value= None if "API_KEY" not in st.secrets else st.secrets['API_KEY'],
-    )
+#     st.session_state['state_selected'] = st.selectbox(
+#         "Select your state",
+#         states,
+#         format_func=lambda x: " ".join(x.split("_")),
+#         index=states.index('New_York'),
+#     ) 
+
+#     st.session_state['api_key_input'] = st.text_input(
+#         "API Key",
+#         type="password",
+#         value= None if "API_KEY" not in st.secrets else st.secrets['API_KEY'],
+#     )
     
-    st.subheader("Experimental")
+#     st.subheader("Experimental")
 
-    st.session_state['show_all_restaurants'] = st.toggle("Show All Restaurants", value=False)
+#     st.session_state['show_all_restaurants'] = st.toggle("Show All Restaurants", value=False)
 
-    if st.session_state['show_all_restaurants']:
-        st.session_state['sampling_factor'] = st.slider("Sampling Factor", 0.0, 1.0, value=0.1)
+#     if st.session_state['show_all_restaurants']:
+#         st.session_state['sampling_factor'] = st.slider("Sampling Factor", 0.0, 1.0, value=0.1)
 
-    st.session_state['state_select_submitted'] = st.form_submit_button("Submit")
+#     st.session_state['state_select_submitted'] = st.form_submit_button("Submit")
 
 # Check if API Key input authenticates
 st.session_state["api_call_headers"] = {"X-API-Key": st.session_state['api_key_input']}

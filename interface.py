@@ -54,7 +54,7 @@ def produce_main_interface():
         headers=st.session_state["api_call_headers"],
     )
 
-    if st.session_state['show_all_restaurants']:
+    if st.session_state.get('show_all_restaurants'):
 
         non_vegan_list_request = get_list_of_restaurants(
             state_selected,
